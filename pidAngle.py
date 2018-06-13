@@ -11,6 +11,7 @@ class PID:
         self.leftSpeed = self.vl
         self.rightSpeed = self.vl
         self.dq = col.deque(maxlen = 5)
+
     def getError(self, rx, ry, rtheta, x, y):
         r2line = math.degrees(math.atan2(y - ry, x - rx))
         if(r2line < 0):
@@ -31,6 +32,12 @@ class PID:
         self.lastError = error
         self.dq.append(error)
         self.errorSum = sum(self.dq)
+    
+    def getLeftSpeed():
+        return self.leftSpeed
+    
+    def getRightSpeed():
+        return self.rightSpeed
 
 def main():
     pidAngle = PID(1, 0, 0, 0)
