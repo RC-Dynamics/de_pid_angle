@@ -5,7 +5,7 @@ class Circle:
     def __init__(self, r):
         self.radius = r
 
-    def circle_discretizaztion(self, qtd_poits = 40):
+    def circleDiscretization(self, qtd_poits = 40):
         ret = []
         angle_diff = 2 * math.pi / qtd_poits
         for i in range(qtd_poits):
