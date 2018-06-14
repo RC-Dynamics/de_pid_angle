@@ -1,7 +1,10 @@
 import numpy as np 
 import random
+
+from fitness_ackley import fitness_ackley as fitnessFunction
+from tqdm import tqdm
 class DEA:
-	def __init__(self, NP=5, D=3, MaxGen=20, CR=0.9, F=1):
+	def __init__(self, NP=15, D=3, MaxGen=500, CR=0.90, F=0.7):
 		"""
 		Attributes:
 			NP = Number of Population
@@ -32,16 +35,19 @@ class DEA:
 				self.population[i][j] = minD + np.random.rand(1) * (maxD - minD)
 
 	def __init__fitness(self):
-		# TO DO
-		pass
+		self.fitness = np.zeros((self.NP), dtype=np.float)
+		for i in range(self.NP ):
+			self.fitness[i] = fitnessFunction(self.population[i])
+
+				
 
 	def __get_fitness(self, genotype):
-		# TO DO
-		return 1;
+		return fitnessFunction(genotype);
 
 	def forward(self):
 		# Mutation and Cross Over
-		for G in range(self.MaxGen):
+		t = tqdm(range(self.MaxGen))
+		for G in t:
 			self.popG = np.zeros((self.NP, self.D), dtype=np.float)
 			for i in range(self.NP):
 				r1, r2, r3 = random.sample([x for x in range(self.NP) if x != i], 3)
@@ -53,15 +59,21 @@ class DEA:
 						geneR2 = self.population[r2, j]
 						geneR3 = self.population[r3, j]
 						self.popG[i,j] = geneR1 + self.F * (geneR2 - geneR3)
+
 					else:
 						self.popG[i,j] = self.population[i, j]
-			# Selection
-			if self.__get_fitness( self.popG[i, :]) > self.__get_fitness( self.population[i, :]):
-				self.population[i] = self.popG[i]	
+				# Selection
+				popGFit = self.__get_fitness( self.popG[i])
+
+				if popGFit < self.__get_fitness( self.population[i]):
+					self.population[i] = self.popG[i]	
+					self.fitness[i] = popGFit
 				
+				t.set_description("{}".format(np.min(self.fitness)))
 
 if __name__ == '__main__':
 	dea = DEA()
-	#dea.forward()
+	dea.forward()
+	print (dea.population[0])
 
 
