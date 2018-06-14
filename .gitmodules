@@ -1,0 +1,3 @@
+[submodule "VSS-Simulator"]
+	path = VSS-Simulator
+	url = https://github.com/robocin/VSS-Simulator
