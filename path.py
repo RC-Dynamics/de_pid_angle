@@ -3,7 +3,26 @@ import numpy as np
 from random import random
 import math
 
-class PathError:
+class Path:   
+    def __init__(self, r):
+        self.radius = r
+        self.path = []
+        self.circleDiscretization()
+
+    def circleDiscretization(self, qtd_poits = 40):
+        self.path = []
+        angle_diff = 2 * math.pi / qtd_poits
+        for i in range(qtd_poits):
+            point = (self.radius * math.cos(i * angle_diff), self.radius * math.sin(i * angle_diff))
+            self.path.append(point)
+        return self.path
+    
+    def getPath(self):
+        return self.path
+
+    def area(self):
+        return math.pi * self.radius * self.radius
+
     def getSimpleError(self, path, robotPath, N=1):
         totalError = 0.0
         for i in range(len(path) - 1):
@@ -30,7 +49,7 @@ class PathError:
         for i in range(len (pathNp) - 1):
             totalError += np.sqrt(((pathNp[i] - pathNp[i+1]) ** 2).sum(0))
             if src is not '':
-                cv2.arrowedLine(src, tD2I(path[i]), tD2I(path[i+1]), (255,255,255))
+                cv2.arrowedLine(src, self.tD2I(path[i]), self.tD2I(path[i+1]), (255,255,255))
         return totalError
     
 
@@ -39,8 +58,8 @@ if __name__ == '__main__':
     height, width = 480, 640
     radius = 150
     angleShift = math.radians(20)
-    src = np.zeros(shape=(height, width, 3),dtype=np.int)
-    center = (width/2, height/2)
+    src = np.zeros(shape=(height, width, 3),dtype=np.uint8)
+    center = (width//2, height//2)
     cv2.circle(src, center, radius, (0,0,255),1)
     path = []
     robotPath = []
@@ -71,6 +90,6 @@ if __name__ == '__main__':
     print (ptError.getPerimeterError(path[0], path[1], robotPath, src))
     
     cv2.namedWindow("ErrorWin", cv2.WINDOW_NORMAL)
-    cv2.imshow("ErrorWin",src);
-    cv2.waitKey(0);
-    cv2.destroyAllWindows();
+    cv2.imshow("ErrorWin",src)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()

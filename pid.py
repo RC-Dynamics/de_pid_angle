@@ -23,6 +23,13 @@ class PIDAngle:
             error = error - 360
         return error
         
+    def setVl(self, vl):
+        self.vl = vl
+
+    def setK(self, kp, ki, kd):
+        self.kp = kp
+        self.ki = ki
+        self.kd = kd
    
     def calcSpeeds(self, rx, ry, rtheta, x, y):
         error = self.getError(rx, ry, rtheta, x ,y)
