@@ -50,8 +50,6 @@ class Path:
         totalError = 0.0
         for i in range(len (pathNp) - 1):
             totalError += np.sqrt(((pathNp[i] - pathNp[i+1]) ** 2).sum(0))
-            if src is not '':
-                cv2.arrowedLine(src, self.tD2I(path[i]), self.tD2I(path[i+1]), (255,255,255))
         return totalError
     
 

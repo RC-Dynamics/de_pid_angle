@@ -4,7 +4,7 @@ import random
 from fitness_ackley import fitness_ackley as fitnessFunction
 from tqdm import tqdm
 class DEA:
-	def __init__(self, NP=15, D=3, MaxGen=500, CR=0.90, F=0.7):
+	def __init__(self, NP=5, D=3, MaxGen=500, CR=0.90, F=0.7):
 		"""
 		Attributes:
 			NP = Number of Population
@@ -18,7 +18,7 @@ class DEA:
 		self.MaxGen = MaxGen
 		self.CR = CR
 		self.F = F
-		self.kpMax, self.kiMax, self.kdMax = 10, 2, 10
+		self.kpMax, self.kiMax, self.kdMax = 2, 2, 10
 		self.__init__population()
 		self.__init__fitness()
 
