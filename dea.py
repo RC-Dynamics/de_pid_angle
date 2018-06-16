@@ -35,11 +35,9 @@ class DEA:
 				self.population[i][j] = minD + np.random.rand(1) * (maxD - minD)
 
 	def __init__fitness(self):
-		self.fitness = np.zeros((self.NP), dtype=np.float)
+		self.fitness = np.zeros((self.NP, 1), dtype=np.float)
 		for i in range(self.NP ):
 			self.fitness[i] = fitnessFunction(self.population[i])
-
-				
 
 	def __get_fitness(self, genotype):
 		return fitnessFunction(genotype);
@@ -69,11 +67,12 @@ class DEA:
 					self.population[i] = self.popG[i]	
 					self.fitness[i] = popGFit
 				
-				t.set_description("{}".format(np.min(self.fitness)))
+			t.set_description("{}".format(np.min(self.fitness)))
 
 if __name__ == '__main__':
 	dea = DEA()
 	dea.forward()
-	print (dea.population[0])
+	#print (dea.population.shape, dea.fitness.reshape(-1))
+	print (np.hstack((dea.population, dea.fitness)))
 
 
