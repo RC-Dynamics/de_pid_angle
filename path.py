@@ -1,4 +1,3 @@
-import cv2
 import numpy as np
 from random import random
 import math
@@ -7,7 +6,6 @@ class Path:
     def __init__(self, r):
         self.radius = r
         self.path = []
-        self.circleDiscretization()
 
     def circleDiscretization(self, qtd_poits = 40):
         self.path = []
