@@ -13,12 +13,16 @@ class Path:
         self.path = []
         angle_diff = 2 * math.pi / qtd_poits
         for i in range(qtd_poits):
-            point = (self.radius * math.cos(i * angle_diff), self.radius * math.sin(i * angle_diff))
+            point = (self.radius * math.cos(i * angle_diff) + 85, self.radius * math.sin(i * angle_diff) + 65)
             self.path.append(point)
         return self.path
     
     def getPath(self):
-        return self.path
+        return self.path[1:] + [self.path[0]]
+    
+    def pointDistance(self, x1, y1, x2, y2):
+        return math.sqrt( (x1-x2)**2 + (y1-y2)**2)
+    
 
     def area(self):
         return math.pi * self.radius * self.radius
@@ -53,43 +57,43 @@ class Path:
         return totalError
     
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
 
-    height, width = 480, 640
-    radius = 150
-    angleShift = math.radians(20)
-    src = np.zeros(shape=(height, width, 3),dtype=np.uint8)
-    center = (width//2, height//2)
-    cv2.circle(src, center, radius, (0,0,255),1)
-    path = []
-    robotPath = []
+    # height, width = 480, 640
+    # radius = 150
+    # angleShift = math.radians(20)
+    # src = np.zeros(shape=(height, width, 3),dtype=np.uint8)
+    # center = (width//2, height//2)
+    # cv2.circle(src, center, radius, (0,0,255),1)
+    # path = []
+    # robotPath = []
     
-    for i in np.arange(0,  angleShift * 2, angleShift):
-        x = (width/2 + math.cos(i) * radius)
-        y = (height/2 + math.sin(i) * radius) 
-        cv2.circle(src, (int(x), int(y)), 1, (255, 0, 0), 1)
+    # for i in np.arange(0,  angleShift * 2, angleShift):
+    #     x = (width/2 + math.cos(i) * radius)
+    #     y = (height/2 + math.sin(i) * radius) 
+    #     cv2.circle(src, (int(x), int(y)), 1, (255, 0, 0), 1)
         
-        xn = (width/2 + math.cos(i + angleShift/4.0) * radius)  
-        yn = (height/2 + math.sin(i + angleShift/4.0) * radius)  
-        xr = xn + (random() - 0.5) * radius/2.5
-        yr = yn + (random() - 0.5) * radius/2.5
-        robotPath.append((xr, yr))
-        cv2.circle(src, (int(xr), int(yr)), 1, (0, 255, 0), 1)
+    #     xn = (width/2 + math.cos(i + angleShift/4.0) * radius)  
+    #     yn = (height/2 + math.sin(i + angleShift/4.0) * radius)  
+    #     xr = xn + (random() - 0.5) * radius/2.5
+    #     yr = yn + (random() - 0.5) * radius/2.5
+    #     robotPath.append((xr, yr))
+    #     cv2.circle(src, (int(xr), int(yr)), 1, (0, 255, 0), 1)
         
-        xn = (width/2 + math.cos(i + angleShift/2.0) * radius)  
-        yn = (height/2 + math.sin(i + angleShift/2.0) * radius)  
-        xr = xn + (random() - 0.5) * radius/2.5
-        yr = yn + (random() - 0.5) * radius/2.5
-        robotPath.append((xr, yr))
-        cv2.circle(src, (int(xr), int(yr)), 1, (0, 255, 0), 1)
+    #     xn = (width/2 + math.cos(i + angleShift/2.0) * radius)  
+    #     yn = (height/2 + math.sin(i + angleShift/2.0) * radius)  
+    #     xr = xn + (random() - 0.5) * radius/2.5
+    #     yr = yn + (random() - 0.5) * radius/2.5
+    #     robotPath.append((xr, yr))
+    #     cv2.circle(src, (int(xr), int(yr)), 1, (0, 255, 0), 1)
         
-        path.append((x,y))
+    #     path.append((x,y))
 
-    ptError = PathError()
+    # ptError = PathError()
 
-    print (ptError.getPerimeterError(path[0], path[1], robotPath, src))
+    # print (ptError.getPerimeterError(path[0], path[1], robotPath, src))
     
-    cv2.namedWindow("ErrorWin", cv2.WINDOW_NORMAL)
-    cv2.imshow("ErrorWin",src)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # cv2.namedWindow("ErrorWin", cv2.WINDOW_NORMAL)
+    # cv2.imshow("ErrorWin",src)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()

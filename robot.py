@@ -10,8 +10,7 @@ class Robot(object):
 		self.x = x
 		self.y = y
 		self.angle = angle
-		print(self.angle)
-
+		
 	def getCoord(self):
 		return self.x,self.y,self.angle
 

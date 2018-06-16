@@ -33,17 +33,18 @@ class PIDAngle:
    
     def calcSpeeds(self, rx, ry, rtheta, x, y):
         error = self.getError(rx, ry, rtheta, x ,y)
-        correction = kp * error + ki * self.errorSum + kd * (error - self.lastError)
+        correction = self.kp * error + self.ki * self.errorSum + self.kd * (error - self.lastError)
         self.leftSpeed = self.vl + correction
         self.rightSpeed = self.vl - correction
         self.lastError = error
         self.dq.append(error)
         self.errorSum = sum(self.dq)
+        return error
     
-    def getLeftSpeed():
+    def getLeftSpeed(self):
         return self.leftSpeed
     
-    def getRightSpeed():
+    def getRightSpeed(self):
         return self.rightSpeed
 
 def main():
@@ -52,6 +53,6 @@ def main():
         ang = i*10
         print ("{}  {}".format(pidAngle.getError(0.0, 0.0, 90, math.cos(math.radians(ang)), math.sin(math.radians(ang))), ang))
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
 
