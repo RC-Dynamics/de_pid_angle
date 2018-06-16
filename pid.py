@@ -17,10 +17,7 @@ class PIDAngle:
         if(r2line < 0):
             r2line = 360 + r2line
         error = r2line - rtheta
-        if(error < -180):
-            error = 360 + error
-        if(error > 180):
-            error = error - 360
+        # print ("line: {0:.2f}  robot: {1:.2f}  erro:{2:.2f}".format(r2line, rtheta, error))
         return error
         
     def setVl(self, vl):

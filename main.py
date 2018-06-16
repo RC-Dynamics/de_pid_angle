@@ -14,13 +14,15 @@ def restartRobot():
 	d = robot.getVel()
 	conn.send(d.encode())
 	return x,y,theta
+
 def updateRobot(i):
 	data = conn.recv(1024)
 	recData = json.loads(data.decode('utf-8'))
 	robot.setCoord(recData['robot0']['x'],recData['robot0']['y'],recData['robot0']['z'])		
 	x, y, theta = robot.getCoord()
 	#robotPositions[countInt].append((x, y))
-	erro = pid.calcSpeeds(x, y, 360-theta, i[0], i[1])
+	erro = pid.calcSpeeds(x, 130-y, 360-theta, i[0], 130-i[1])
+	# print ("t: {0:.2f}  e: {1:.2f}  x:{2:.2f}   y:{3:.2f}  rx:{4:.2f}  ry:{5:.2f}".format(theta, erro, i[0], i[1], x, y))
 	robot.setVel(pid.getLeftSpeed(),pid.getRightSpeed())
 	d = robot.getVel()
 	conn.send(d.encode())
@@ -58,6 +60,7 @@ startPoints = []
 endPoints = []
 startPoints.append((125, 65))
 restartFlag = False
+
 path.circleDiscretization(50)
 
 #while 1: #DEA a todo gene 
@@ -155,6 +158,7 @@ class DEA:
 				minD = np.min(population[:, j])
 				maxD = np.max(population[:, j])
 				self.population[i][j] = minD + np.random.rand(1) * (maxD - minD)
+		
 
 	def __init__fitness(self):
 		self.fitness = np.zeros((self.NP, 1), dtype=np.float)
@@ -199,13 +203,6 @@ if __name__ == '__main__':
 	dea = DEA(NP=4, MaxGen=2)
 	dea.forward()
 	print (np.hstack((dea.population, dea.fitness)))
-
-
-
-
-
-
-
 
 conn.close()
 print ('Server closed.')
