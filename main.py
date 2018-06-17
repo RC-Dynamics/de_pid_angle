@@ -92,10 +92,10 @@ def fitnessFunction(kp, ki, kd):
 		while path.pointDistance(i[0], i[1], x, y) > 5 and time.time() - start_time < 0.1:
 
 			x,y,theta = updateRobot(i)
-			if(path.pointDistance(125, 65, x, y) <= 0.5 and countInt > 5):
+			if(path.pointDistance(125, 65, x, y) <= 0.3 and countInt > 5):
 				print("Warring: Robot Did not move! {}".format(fitness_error))
 				print("Warring: Set Fitness to Inf")
-				fitness_error = 99999999
+				fitness_error = 99999998
 				restartFlag = True
 				break
 			if(countInt > 10):
@@ -116,6 +116,8 @@ def fitnessFunction(kp, ki, kd):
 		startPoints = (i[0], i[1])
 		countInt += 1
 	#print("Path complete!, with Fitness = ", fitness_error)
+	if countInt != len(path.getPath()) and restartFlag == False:
+		print("ERROR: Count Interation Error {}".format(countInt))
 	if(fitness_error < 250):
 		print("Warring: Fitness error too low! {}".format(fitness_error))
 		print("Warring: Set Fitness to Inf")
@@ -159,14 +161,14 @@ class DEA:
 		kd = np.random.rand(self.NP, 1) * self.kdMax
 		population = (np.hstack((kp, ki, kd)))
 		self.population = np.zeros((self.NP, self.D), dtype=np.float)
-		self.population[0] = (0.1, 0, 2) # Force a normal solution
+		#self.population[0] = (0.1, 0, 2) # Force a normal solution
 		
 		for i in range(1, self.NP ):
 			for j in range(self.D):
 				minD = np.min(population[:, j])
 				maxD = np.max(population[:, j])
 				self.population[i][j] = minD + np.random.rand(1) * (maxD - minD)
-				self.population[i][1] = 0
+				#self.population[i][1] = 0
 
 
 	def __init__fitness(self):
@@ -186,7 +188,7 @@ class DEA:
 
 			with open ('log.txt', 'a') as log:
 				log.write("Epoch: {}\n".format(epoch))
-				logWrite = np.array2string(np.hstack((self.population, self.fitness)), formatter={'float_kind':lambda x: "%.2f" % x})
+				logWrite = np.array2string(np.hstack((self.population, self.fitness)), formatter={'float_kind':lambda x: "%.4f" % x})
 				log.write(logWrite + '\n')
 				epoch += 1
 		
