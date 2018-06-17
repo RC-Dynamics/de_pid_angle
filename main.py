@@ -166,6 +166,7 @@ class DEA:
 				minD = np.min(population[:, j])
 				maxD = np.max(population[:, j])
 				self.population[i][j] = minD + np.random.rand(1) * (maxD - minD)
+				self.population[i][1] = 0
 
 
 	def __init__fitness(self):
@@ -180,7 +181,15 @@ class DEA:
 	def forward(self):
 		# Mutation and Cross Over
 		t = tqdm(range(self.MaxGen))
+		epoch = 0
 		for G in t:
+			
+			with open ('log.txt', 'a') as log:
+				log.write("Epoch: {}\n".format(epoch))
+				logWrite = np.array2string(np.hstack((self.population, self.fitness)), formatter={'float_kind':lambda x: "%.2f" % x})
+				log.write(logWrite + '\n')
+				epoch += 1
+		
 			self.popG = np.zeros((self.NP, self.D), dtype=np.float)
 			for i in range(self.NP):
 				r1, r2, r3 = random.sample([x for x in range(self.NP) if x != i], 3)
@@ -205,7 +214,9 @@ class DEA:
 				if popGFit < self.fitness[i]:
 					self.population[i] = self.popG[i]	
 					self.fitness[i] = popGFit
-				
+
+
+						
 			
 
 
