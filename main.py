@@ -87,24 +87,26 @@ def fitnessFunction(kp, ki, kd):
 	# -> 
 	
 	for i in path.getPath():
-		
 		start_time = time.time()
-		# print(path.pointDistance(i[0], i[1], x, y))
-		
-		
-		
 		endPoints = (i[0], i[1])
-		#print (endPoints)
-		
-		# pass start and end point of segment -> Carlos
-		while path.pointDistance(i[0], i[1], x, y) > 5 and time.time() - start_time < 0.4:
-			#print("robo: {0:.2f}  {1:.2f} -- obj:{2:.2f}  {3:.2f} - erro: {4:.2f} - dist: {5:.2f}".format(x, y, i[0], i[1], erro, path.pointDistance(i[0], i[1], x, y)))
-			x,y,theta = updateRobot(i)
 
-			if(path.pointDistance(125, 65, x, y) <= 0.1 and countInt > 0):
-				#print("Restart!")
+		while path.pointDistance(i[0], i[1], x, y) > 5 and time.time() - start_time < 0.4:
+
+			x,y,theta = updateRobot(i)
+			if(path.pointDistance(125, 65, x, y) <= 0.5 and countInt > 5):
+				print("Warring: Robot Did not move! {}".format(fitness_error))
+				print("Warring: Set Fitness to Inf")
+				fitness_error = 99999999
 				restartFlag = True
 				break
+			if(countInt > 10):
+				if(path.pointDistance(robotPositions[-10][0], robotPositions[-10][1], x, y) < 0.2):
+					print("Warring: Robot Spinning!! {}".format(fitness_error))
+					print("Warring: Set Fitness to Inf")
+					fitness_error = 99999999
+					restartFlag = True
+					break
+
 			robotPositions.append((x, y))
 		
 		if restartFlag == True:
