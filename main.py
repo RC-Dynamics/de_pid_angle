@@ -67,7 +67,7 @@ path.circleDiscretization(50)
 def fitnessFunction(kp, ki, kd):
 	path.circleDiscretization(50)
 
-	print("Trying: Kp: {:0.2f} Ki: {:0.2f} Kd: {:0.2f}".format(kp, ki, kd))
+	#	print("Trying: Kp: {:0.2f} Ki: {:0.2f} Kd: {:0.2f}".format(kp, ki, kd))
 	fitness_error = 0.0
 	pid.setK(kp, ki, kd)
 	robotPositions = []
@@ -82,7 +82,8 @@ def fitnessFunction(kp, ki, kd):
 
 	restartFlag = False
 	countInt = 0 
-	print ("chegggou")
+	pid.setK(kp, ki, kd)
+	#print ("chegggou")
 	# -> 
 	
 	for i in path.getPath():
@@ -93,7 +94,7 @@ def fitnessFunction(kp, ki, kd):
 		
 		
 		endPoints = (i[0], i[1])
-		print (endPoints)
+		#print (endPoints)
 		
 		# pass start and end point of segment -> Carlos
 		while path.pointDistance(i[0], i[1], x, y) > 5 and time.time() - start_time < 0.4:
@@ -101,7 +102,7 @@ def fitnessFunction(kp, ki, kd):
 			x,y,theta = updateRobot(i)
 
 			if(path.pointDistance(125, 65, x, y) <= 0.1 and countInt > 0):
-				print("Restart!")
+				#print("Restart!")
 				restartFlag = True
 				break
 			robotPositions.append((x, y))
@@ -112,8 +113,11 @@ def fitnessFunction(kp, ki, kd):
 		fitness_error += path.getPerimeterError(startPoints, endPoints, robotPositions)
 		startPoints = (i[0], i[1])
 		countInt += 1
-	print("Path complete!, with Fitness = ", fitness_error)
-	
+	#print("Path complete!, with Fitness = ", fitness_error)
+	if(fitness_error < 250):
+		print("Warring: Fitness error too low! {}".format(fitness_error))
+		print("Warring: Set Fitness to Inf")
+		fitness_error = 99999999
 	return fitness_error
 	#while (path.pointDistance(125, 65, x, y) >= 0.3):
 	#	x,y,theta = updateRobot(i)
@@ -166,6 +170,7 @@ class DEA:
 		self.fitness = np.zeros((self.NP, 1), dtype=np.float)
 		for i in range(self.NP ):
 			self.fitness[i] = fitnessFunction(self.population[i][0], self.population[i][1], self.population[i][2])
+			print("PID: {}, Fitness: {}".format(self.population[i], self.fitness[i]) )
 
 	def __get_fitness(self, genotype):
 		return fitnessFunction(genotype[0],genotype[1],genotype[2]);
@@ -184,26 +189,31 @@ class DEA:
 						geneR1 = self.population[r1, j]
 						geneR2 = self.population[r2, j]
 						geneR3 = self.population[r3, j]
-						self.popG[i,j] = geneR1 + self.F * (geneR2 - geneR3)
+						gene = geneR1 + self.F * (geneR2 - geneR3)
+						if gene < 0:
+							gene = 0.0001
+						self.popG[i,j] = gene
 
 					else:
 						self.popG[i,j] = self.population[i, j]
 				# Selection
 				popGFit = self.__get_fitness( self.popG[i])
+				t.set_description("PID: {}, Fitness: {}".format(self.popG[i],popGFit))
 
-				if popGFit < self.__get_fitness( self.population[i]):
+				if popGFit < self.fitness[i]:
 					self.population[i] = self.popG[i]	
 					self.fitness[i] = popGFit
 				
-			t.set_description("{}".format(np.min(self.fitness)))
+			
 
 
 
 #######################################################################################
 
 if __name__ == '__main__':
-	dea = DEA(NP=4, MaxGen=2)
+	dea = DEA(NP=10, MaxGen=200)
 	dea.forward()
+
 	print (np.hstack((dea.population, dea.fitness)))
 
 conn.close()
