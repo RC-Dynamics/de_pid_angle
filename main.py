@@ -76,7 +76,7 @@ def fitnessFunction(kp, ki, kd):
 	x, y, theta = restartRobot()
 	
 	while (path.pointDistance(125, 65, x, y) >= 0.3):
-		x,y,theta = updateRobot([0, 0])
+		x,y,theta = restartRobot()
 	
 	x, y, theta = restartRobot()
 
@@ -153,12 +153,14 @@ class DEA:
 		kd = np.random.rand(self.NP, 1) * self.kdMax
 		population = (np.hstack((kp, ki, kd)))
 		self.population = np.zeros((self.NP, self.D), dtype=np.float)
-		for i in range(self.NP ):
+		self.population[0] = (0.1, 0, 2) # Force a normal solution
+		
+		for i in range(1, self.NP ):
 			for j in range(self.D):
 				minD = np.min(population[:, j])
 				maxD = np.max(population[:, j])
 				self.population[i][j] = minD + np.random.rand(1) * (maxD - minD)
-		
+
 
 	def __init__fitness(self):
 		self.fitness = np.zeros((self.NP, 1), dtype=np.float)
