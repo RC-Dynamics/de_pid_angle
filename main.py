@@ -85,12 +85,11 @@ def fitnessFunction(kp, ki, kd):
 	pid.setK(kp, ki, kd)
 	#print ("chegggou")
 	# -> 
-	
+
 	for i in path.getPath():
 		start_time = time.time()
 		endPoints = (i[0], i[1])
-
-		while path.pointDistance(i[0], i[1], x, y) > 5 and time.time() - start_time < 0.4:
+		while path.pointDistance(i[0], i[1], x, y) > 5 and time.time() - start_time < 0.1:
 
 			x,y,theta = updateRobot(i)
 			if(path.pointDistance(125, 65, x, y) <= 0.5 and countInt > 5):
@@ -100,7 +99,8 @@ def fitnessFunction(kp, ki, kd):
 				restartFlag = True
 				break
 			if(countInt > 10):
-				if(path.pointDistance(robotPositions[-10][0], robotPositions[-10][1], x, y) < 0.2):
+
+				if(path.pointDistance(robotPositions[-20][0], robotPositions[-20][1], x, y) < 0.04):
 					print("Warring: Robot Spinning!! {}".format(fitness_error))
 					print("Warring: Set Fitness to Inf")
 					fitness_error = 99999999
@@ -183,7 +183,7 @@ class DEA:
 		t = tqdm(range(self.MaxGen))
 		epoch = 0
 		for G in t:
-			
+
 			with open ('log.txt', 'a') as log:
 				log.write("Epoch: {}\n".format(epoch))
 				logWrite = np.array2string(np.hstack((self.population, self.fitness)), formatter={'float_kind':lambda x: "%.2f" % x})
