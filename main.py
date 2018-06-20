@@ -190,8 +190,11 @@ class DEA:
 		return fitnessFunction(genotype[0],genotype[1],genotype[2]);
 
 	def __init_csv(self):
-		with open ('log/log_epoch'+self.logName+'.csv', 'a') as log:
+		with open ('log/log_'+self.logName+'_epoch.csv', 'a') as log:
 			log.write("Epoch\t Min\t Mean\t Best\t\n")
+
+		with open ('log/log_'+self.logName+'_population.csv', 'a') as log:
+			log.write("Kp\tKi\tKd\tFitness\t\n")
 
 	def forward(self):
 		# Mutation and Cross Over
@@ -199,12 +202,15 @@ class DEA:
 		epoch = 0
 		for G in t:
 
-			with open ('log/log_population'+self.logName+'.txt', 'a') as log:
+			with open ('log/log_'+self.logName+'_population.csv', 'a') as log:
 				log.write("Epoch: {}\n".format(epoch))
-				logWrite = np.array2string(np.hstack((self.population, self.fitness)), formatter={'float_kind':lambda x: "%.4f" % x})
-				log.write(logWrite + '\n')
+				#logWrite = np.array2string(np.hstack((self.population, self.fitness)), formatter={'float_kind':lambda x: "%.4f" % x})
+				PIDList = np.hstack((self.population, self.fitness))
+				for PID in PIDList:
+					log.write("{:0.4f}\t{:0.4f}\t{:0.4f}\t{:0.4f}\t\n".format(PID[0], PID[1], PID[2], PID[3]))
+				
 
-			with open ('log/log_epoch'+self.logName+'.csv', 'a') as log:
+			with open ('log/log_'+self.logName+'_epoch.csv', 'a') as log:
 				indexMin = np.argmin(self.fitness)
 				minFit = np.min(self.fitness)
 				meanFit = np.mean(self.fitness)
@@ -245,7 +251,7 @@ class DEA:
 #######################################################################################
 
 if __name__ == '__main__':
-	dea = DEA(NP=4, MaxGen=200)
+	dea = DEA(NP=10, MaxGen=200)
 	dea.forward()
 
 	print (np.hstack((dea.population, dea.fitness)))
