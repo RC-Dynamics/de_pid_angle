@@ -4,6 +4,8 @@ import time
 from robot import Robot
 from path import Path
 from pid import PIDAngle
+from datetime import datetime
+
 
 def restartRobot():
 	data = conn.recv(1024)
@@ -93,19 +95,21 @@ def fitnessFunction(kp, ki, kd):
 
 			x,y,theta = updateRobot(i)
 			if(path.pointDistance(125, 65, x, y) <= 0.3 and countInt > 5):
-				print("Warring: Robot Did not move! {}".format(fitness_error))
-				print("Warring: Set Fitness to Inf")
-				fitness_error = 99999998
-				restartFlag = True
-				break
+				pass
+				#print("Warring: Robot Did not move! {}".format(fitness_error))
+				#print("Warring: Set Fitness to Inf")
+				#fitness_error = 99999998
+				#restartFlag = True
+				#break
 			if(countInt > 10):
 
 				if(path.pointDistance(robotPositions[-20][0], robotPositions[-20][1], x, y) < 0.04):
-					print("Warring: Robot Spinning!! {}".format(fitness_error))
-					print("Warring: Set Fitness to Inf")
-					fitness_error = 99999999
-					restartFlag = True
-					break
+					#print("Warring: Robot Spinning!! {}".format(fitness_error))
+					#print("Warring: Set Fitness to Inf")
+					#fitness_error = 99999999
+					#restartFlag = True
+					#break
+					pass
 
 			robotPositions.append((x, y))
 		
@@ -152,8 +156,13 @@ class DEA:
 		self.CR = CR
 		self.F = F
 		self.kpMax, self.kiMax, self.kdMax = 2, 2, 10
+		self.timeStamp = (datetime.now())  
+		self.logName = '_'.join(str(x) for x in (self.timeStamp.year,self.timeStamp.month, self.timeStamp.day, self.timeStamp.minute))
+        
+		self.__init_csv()
 		self.__init__population()
 		self.__init__fitness()
+
 
 	def __init__population(self):
 		kp = np.random.rand(self.NP, 1) * self.kpMax
@@ -163,7 +172,7 @@ class DEA:
 		self.population = np.zeros((self.NP, self.D), dtype=np.float)
 		#self.population[0] = (0.1, 0, 2) # Force a normal solution
 		
-		for i in range(1, self.NP ):
+		for i in range(0, self.NP ):
 			for j in range(self.D):
 				minD = np.min(population[:, j])
 				maxD = np.max(population[:, j])
@@ -180,17 +189,29 @@ class DEA:
 	def __get_fitness(self, genotype):
 		return fitnessFunction(genotype[0],genotype[1],genotype[2]);
 
+	def __init_csv(self):
+		with open ('log/log_epoch'+self.logName+'.csv', 'a') as log:
+			log.write("Epoch\t Min\t Mean\t Best\t\n")
+
 	def forward(self):
 		# Mutation and Cross Over
 		t = tqdm(range(self.MaxGen))
 		epoch = 0
 		for G in t:
 
-			with open ('log.txt', 'a') as log:
+			with open ('log/log_population'+self.logName+'.txt', 'a') as log:
 				log.write("Epoch: {}\n".format(epoch))
 				logWrite = np.array2string(np.hstack((self.population, self.fitness)), formatter={'float_kind':lambda x: "%.4f" % x})
 				log.write(logWrite + '\n')
-				epoch += 1
+
+			with open ('log/log_epoch'+self.logName+'.csv', 'a') as log:
+				indexMin = np.argmin(self.fitness)
+				minFit = np.min(self.fitness)
+				meanFit = np.mean(self.fitness)
+				logWrite = np.array2string( self.population[indexMin] , formatter={'float_kind':lambda x: "%.4f" % x})
+				log.write("{}\t{:.4f}\t{:.4f}\t{}\t\n".format(epoch, minFit, meanFit, logWrite))
+			
+			epoch += 1
 		
 			self.popG = np.zeros((self.NP, self.D), dtype=np.float)
 			for i in range(self.NP):
@@ -203,9 +224,7 @@ class DEA:
 						geneR2 = self.population[r2, j]
 						geneR3 = self.population[r3, j]
 						gene = geneR1 + self.F * (geneR2 - geneR3)
-						if gene < 0:
-							gene = 0.0001
-						self.popG[i,j] = gene
+						self.popG[i,j] = abs(gene)
 
 					else:
 						self.popG[i,j] = self.population[i, j]
@@ -213,7 +232,7 @@ class DEA:
 				popGFit = self.__get_fitness( self.popG[i])
 				t.set_description("PID: {}, Fitness: {}".format(self.popG[i],popGFit))
 
-				if popGFit < self.fitness[i]:
+				if popGFit <= self.fitness[i]:
 					self.population[i] = self.popG[i]	
 					self.fitness[i] = popGFit
 
@@ -226,7 +245,7 @@ class DEA:
 #######################################################################################
 
 if __name__ == '__main__':
-	dea = DEA(NP=10, MaxGen=200)
+	dea = DEA(NP=4, MaxGen=200)
 	dea.forward()
 
 	print (np.hstack((dea.population, dea.fitness)))
