@@ -5,6 +5,7 @@ from robot import Robot
 from path import Path
 from pid import PIDAngle
 from datetime import datetime
+import matplotlib.pyplot as plt
 
 
 def restartRobot():
@@ -71,6 +72,7 @@ def fitnessFunction(kp, ki, kd):
 
 	#	print("Trying: Kp: {:0.2f} Ki: {:0.2f} Kd: {:0.2f}".format(kp, ki, kd))
 	fitness_error = 0.0
+	fitness_error2 = 0.0
 	pid.setK(kp, ki, kd)
 	robotPositions = []
 	startPoints = (125, 65)
@@ -81,32 +83,32 @@ def fitnessFunction(kp, ki, kd):
 		x,y,theta = restartRobot()
 	
 	x, y, theta = restartRobot()
-
-	restartFlag = False
 	countInt = 0 
 	pid.setK(kp, ki, kd)
 	#print ("chegggou")
 	# -> 
-
+	flag = False
 	for i in path.getPath():
-		robotPositions = []
 		start_time = time.time()
 		endPoints = (i[0], i[1])
-		while path.pointDistance(i[0], i[1], x, y) > 5 and time.time() - start_time < 0.08:
+		robotPositions = []
+		while path.pointDistance(i[0], i[1], x, y) > 5 and time.time() - start_time < 0.05:
 
 			x,y,theta = updateRobot(i)
-			if(path.pointDistance(125, 65, x, y) <= 0.1 and countInt > 20):
-				#print("Warring: Possible Restart")
-				pass
-
 			robotPositions.append((x, y))
-		
-		if restartFlag == True:
-			break
 
-		fitness_error += path.getPerimeterError(startPoints, endPoints, robotPositions)
+		fitness_error2 += (path.getPerimeterError(startPoints, endPoints, robotPositions)**2)
+		fitness_error += (path.getPerimeterError(startPoints, endPoints, robotPositions))
+		
+		if (path.pointDistance(125, 65, x, y) >= 0.3 and countInt < 10):
+			flag = True
+
+		if (path.pointDistance(125, 65, x, y) <= 0.3 and countInt > 10 and flag):
+			print("Error: Robot Reset")
+	
 		startPoints = (i[0], i[1])
 		countInt += 1
+		#print (countInt)
 	#print("Path complete!, with Fitness = ", fitness_error)
 	if countInt != len(path.getPath()):
 		print("ERROR: Count Interation Error {}".format(countInt))
@@ -114,10 +116,8 @@ def fitnessFunction(kp, ki, kd):
 		print("Warring: Fitness error too low! {}".format(fitness_error))
 		print("Warring: Set Fitness to Inf")
 		fitness_error = 99999999
-	
-	restartRobot()
 
-	return fitness_error
+	return fitness_error, fitness_error2
 	#while (path.pointDistance(125, 65, x, y) >= 0.3):
 	#	x,y,theta = updateRobot(i)
 	#	pass
@@ -132,7 +132,7 @@ def fitnessFunction(kp, ki, kd):
 
 
 class DEA:
-	def __init__(self, NP=15, D=3, MaxGen=500, CR=0.90, F=0.7):
+	def __init__(self, NP=15, D=2, MaxGen=500, CR=0.90, F=0.7):
 		"""
 		Attributes:
 			NP = Number of Population
@@ -146,94 +146,45 @@ class DEA:
 		self.MaxGen = MaxGen
 		self.CR = CR
 		self.F = F
-		self.kpMax, self.kiMax, self.kdMax = 5, 0, 5
+		self.kpMax, self.kdMax = 2, 10
 		self.timeStamp = (datetime.now())  
 		self.logName = '_'.join(str(x) for x in (self.timeStamp.year,self.timeStamp.month, self.timeStamp.day, self.timeStamp.minute))
-        
+		
 		self.__init_csv()
 		self.__init__population()
-		self.__init__fitness()
-
+		
 
 	def __init__population(self):
-		kp = np.random.rand(self.NP, 1) * self.kpMax
-		ki = np.random.rand(self.NP, 1) * self.kiMax
-		kd = np.random.rand(self.NP, 1) * self.kdMax
-		population = (np.hstack((kp, ki, kd)))
 		self.population = np.zeros((self.NP, self.D), dtype=np.float)
-		#self.population[0] = (0.1, 0, 2) # Force a normal solution
-		
-		for i in range(0, self.NP ):
-			for j in range(self.D):
-				minD = np.min(population[:, j])
-				maxD = np.max(population[:, j])
-				self.population[i][j] = minD + np.random.rand(1) * (maxD - minD)
-				self.population[i][1] = 0
-		#self.population[0] = (0.1, 0, 2) # Force a normal solution
-		#self.population[1] = (0.05, 0, 0) # Force a normal solution
-		
-
-	def __init__fitness(self):
-		self.fitness = np.zeros((self.NP, 1), dtype=np.float)
-		for i in range(self.NP ):
-			self.fitness[i] = fitnessFunction(self.population[i][0], self.population[i][1], self.population[i][2])
-			print("PID: {}, Fitness: {}".format(self.population[i], self.fitness[i]) )
-
+	
 	def __get_fitness(self, genotype):
-		return fitnessFunction(genotype[0],genotype[1],genotype[2]);
+		return fitnessFunction(genotype[0], 0.0,genotype[1]);
 
 	def __init_csv(self):
-		with open ('log/log_'+self.logName+'_epoch.csv', 'a') as log:
-			log.write("Epoch\t Min\t Mean\t Best\t\n")
-
-		with open ('log/log_'+self.logName+'_population.csv', 'a') as log:
-			log.write("Kp\tKi\tKd\tFitness\t\n")
+		with open ('log/log_grid_'+self.logName+'_population.csv', 'a') as log:
+			log.write("Kp\tKd\tFitness\tFitness**2\t\n")
 
 	def forward(self):
 		# Mutation and Cross Over
-		t = tqdm(range(self.MaxGen))
-		epoch = 0
-		for G in t:
+		KpAxis = []
+		KdAxis = []
+		fitAxis = []
+		t = tqdm(np.arange(0, 5, 0.25))
 
-			with open ('log/log_'+self.logName+'_population.csv', 'a') as log:
-				log.write("Epoch: {}\n".format(epoch))
-				#logWrite = np.array2string(np.hstack((self.population, self.fitness)), formatter={'float_kind':lambda x: "%.4f" % x})
-				PIDList = np.hstack((self.population, self.fitness))
-				for PID in PIDList:
-					log.write("{:0.4f}\t{:0.4f}\t{:0.4f}\t{:0.4f}\t\n".format(PID[0], PID[1], PID[2], PID[3]))
-				
+		for kp in t:
+			for kd in np.arange(0, 5, 0.25):
+				fitness = self.__get_fitness(np.array([kp, kd]))
+				KpAxis.append(kp)
+				KdAxis.append(kd)
+				fitAxis.append(fitness)
+				with open ('log/log_grid_'+self.logName+'_population.csv', 'a') as log:
+					log.write("{:0.4f}\t{:0.4f}\t{:0.4f}\t{:0.4f}\t\n".format(kp, kd, fitness[0], fitness[1]))
+				t.set_description("PID: {:0.4f} {:0.4f}, Fitness: {:0.4f}, Fitness**2: {:0.4f}".format(kp, kd, fitness[0], fitness[1]))
 
-			with open ('log/log_'+self.logName+'_epoch.csv', 'a') as log:
-				indexMin = np.argmin(self.fitness)
-				minFit = np.min(self.fitness)
-				meanFit = np.mean(self.fitness)
-				logWrite = np.array2string( self.population[indexMin] , formatter={'float_kind':lambda x: "%.4f" % x})
-				log.write("{}\t{:.4f}\t{:.4f}\t{}\t\n".format(epoch, minFit, meanFit, logWrite))
-			
-			epoch += 1
-		
-			self.popG = np.zeros((self.NP, self.D), dtype=np.float)
-			for i in range(self.NP):
-				r1, r2, r3 = random.sample([x for x in range(self.NP) if x != i], 3)
-				jrand = np.random.randint(self.D)
-
-				for j in range(self.D):
-					if(np.random.random(1) < self.CR) or (j == jrand):
-						geneR1 = self.population[r1, j]
-						geneR2 = self.population[r2, j]
-						geneR3 = self.population[r3, j]
-						gene = geneR1 + self.F * (geneR2 - geneR3)
-						self.popG[i,j] = abs(gene)
-
-					else:
-						self.popG[i,j] = self.population[i, j]
-				# Selection
-				popGFit = self.__get_fitness( self.popG[i])
-				t.set_description("PID: {}, Fitness: {}".format(self.popG[i],popGFit))
-
-				if popGFit <= self.fitness[i]:
-					self.population[i] = self.popG[i]	
-					self.fitness[i] = popGFit
+		fig = plt.figure()
+		ax = fig.gca(projection='3d')
+		ax.plot_trisurf(KpAxis, KdAxis, fitAxis, cmap="jet")
+		plt.show()
 
 
 						
@@ -247,7 +198,7 @@ if __name__ == '__main__':
 	dea = DEA(NP=10, MaxGen=200)
 	dea.forward()
 
-	print (np.hstack((dea.population, dea.fitness)))
+	#print (np.hstack((dea.population, dea.fitness)))
 
 conn.close()
 print ('Server closed.')
