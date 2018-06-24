@@ -76,8 +76,7 @@ def fitnessFunction(kp, ki, kd):
 	startPoints = (125, 65)
 
 	x, y, theta = restartRobot()
-	
-	while (path.pointDistance(125, 65, x, y) >= 0.01):
+	while (path.pointDistance(125, 65, x, y) != 0.0):
 		x,y,theta = restartRobot()
 	
 	x, y, theta = restartRobot()
@@ -147,7 +146,7 @@ class DEA:
 		self.MaxGen = MaxGen
 		self.CR = CR
 		self.F = F
-		self.kpMax, self.kiMax, self.kdMax = 5, 0, 5
+		self.kpMax, self.kiMax, self.kdMax = 5, 2, 5
 		self.timeStamp = (datetime.now())  
 		self.logName = '_'.join(str(x) for x in (self.timeStamp.year,self.timeStamp.month, self.timeStamp.day, self.timeStamp.minute))
         
@@ -168,7 +167,7 @@ class DEA:
 				minD = np.min(population[:, j])
 				maxD = np.max(population[:, j])
 				self.population[i][j] = minD + np.random.rand(1) * (maxD - minD)
-				#self.population[i][1] = 0
+		# 		self.population[i][1] = 0
 		# self.population[0] = (0.0228,	0.0000,	0.0438)
 		# self.population[1] = (0.0248,	0.0000,	0.2322)
 		# self.population[2] = (0.0258,	0.0000,	0.0201)
