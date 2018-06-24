@@ -77,7 +77,7 @@ def fitnessFunction(kp, ki, kd):
 
 	x, y, theta = restartRobot()
 	
-	while (path.pointDistance(125, 65, x, y) >= 0.3):
+	while (path.pointDistance(125, 65, x, y) >= 0.01):
 		x,y,theta = restartRobot()
 	
 	x, y, theta = restartRobot()
@@ -86,24 +86,24 @@ def fitnessFunction(kp, ki, kd):
 	countInt = 0 
 	pid.setK(kp, ki, kd)
 	#print ("chegggou")
-	# -> 
+	warningRestart = True
 
 	for i in path.getPath():
 		robotPositions = []
 		start_time = time.time()
 		endPoints = (i[0], i[1])
-		while path.pointDistance(i[0], i[1], x, y) > 5 and time.time() - start_time < 0.08:
-
+		while path.pointDistance(i[0], i[1], x, y) > 1 and time.time() - start_time < 0.08:
 			x,y,theta = updateRobot(i)
-			if(path.pointDistance(125, 65, x, y) <= 0.1 and countInt > 20):
-				#print("Warring: Possible Restart")
-				pass
+			if(path.pointDistance(125, 65, x, y) <= 0.05 and countInt > 20 and warningRestart):
+				print("Warring: Possible Restart")
+				warningRestart = False
+				
 
 			robotPositions.append((x, y))
 		
 		if restartFlag == True:
 			break
-
+		
 		fitness_error += path.getPerimeterError(startPoints, endPoints, robotPositions)
 		startPoints = (i[0], i[1])
 		countInt += 1
@@ -116,6 +116,7 @@ def fitnessFunction(kp, ki, kd):
 		fitness_error = 99999999
 	
 	restartRobot()
+	time.sleep(0.2)
 
 	return fitness_error
 	#while (path.pointDistance(125, 65, x, y) >= 0.3):
@@ -161,16 +162,23 @@ class DEA:
 		kd = np.random.rand(self.NP, 1) * self.kdMax
 		population = (np.hstack((kp, ki, kd)))
 		self.population = np.zeros((self.NP, self.D), dtype=np.float)
-		#self.population[0] = (0.1, 0, 2) # Force a normal solution
 		
 		for i in range(0, self.NP ):
 			for j in range(self.D):
 				minD = np.min(population[:, j])
 				maxD = np.max(population[:, j])
 				self.population[i][j] = minD + np.random.rand(1) * (maxD - minD)
-				self.population[i][1] = 0
-		#self.population[0] = (0.1, 0, 2) # Force a normal solution
-		#self.population[1] = (0.05, 0, 0) # Force a normal solution
+				#self.population[i][1] = 0
+		# self.population[0] = (0.0228,	0.0000,	0.0438)
+		# self.population[1] = (0.0248,	0.0000,	0.2322)
+		# self.population[2] = (0.0258,	0.0000,	0.0201)
+		# self.population[3] = (0.0268,	0.0000,	0.3191)
+		# self.population[4] = (0.0336,	0.0000,	0.3921)
+		# self.population[5] = (0.0234,	0.0000,	0.1508)
+		# self.population[6] = (0.0271,	0.0000,	0.1504)
+		# self.population[7] = (0.0225,	0.0000,	0.0379)
+		# self.population[8] = (0.0364,	0.0000,	0.6613)
+		# self.population[9] = (0.0237,	0.0000,	0.1548)
 		
 
 	def __init__fitness(self):
@@ -244,11 +252,14 @@ class DEA:
 #######################################################################################
 
 if __name__ == '__main__':
-	dea = DEA(NP=10, MaxGen=200)
-	dea.forward()
+	try:
+		dea = DEA(NP=10, MaxGen=200)
+		dea.forward()
 
-	print (np.hstack((dea.population, dea.fitness)))
-
-conn.close()
-print ('Server closed.')
+		print (np.hstack((dea.population, dea.fitness)))
+	except:
+		conn.close()
+		print ('Server closed.')
+	conn.close()
+	print ('Server closed.')
 
