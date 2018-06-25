@@ -91,10 +91,11 @@ def fitnessFunction(kp, ki, kd):
 		robotPositions = []
 		start_time = time.time()
 		endPoints = (i[0], i[1])
-		while path.pointDistance(i[0], i[1], x, y) > 1 and time.time() - start_time < 0.08:
+		#print(countInt)
+		while  path.pointDistance(i[0], i[1], x, y) > 1 and time.time() - start_time < 0.06:  
 			x,y,theta = updateRobot(i)
 			if(path.pointDistance(125, 65, x, y) <= 0.05 and countInt > 20 and warningRestart):
-				print("Warring: Possible Restart")
+				#print("Warring: Possible Restart")
 				warningRestart = False
 				
 
@@ -146,10 +147,10 @@ class DEA:
 		self.MaxGen = MaxGen
 		self.CR = CR
 		self.F = F
-		self.kpMax, self.kiMax, self.kdMax = 5, 2, 5
+		self.kpMax, self.kiMax, self.kdMax = 4, 2, 4
 		self.timeStamp = (datetime.now())  
-		self.logName = '_'.join(str(x) for x in (self.timeStamp.year,self.timeStamp.month, self.timeStamp.day, self.timeStamp.minute))
-        
+		self.logName = '_'.join(str(x) for x in (self.timeStamp.year,self.timeStamp.month, self.timeStamp.day, self.timeStamp.hour, self.timeStamp.minute))
+		
 		self.__init_csv()
 		self.__init__population()
 		self.__init__fitness()
@@ -167,19 +168,8 @@ class DEA:
 				minD = np.min(population[:, j])
 				maxD = np.max(population[:, j])
 				self.population[i][j] = minD + np.random.rand(1) * (maxD - minD)
-		# 		self.population[i][1] = 0
-		# self.population[0] = (0.0228,	0.0000,	0.0438)
-		# self.population[1] = (0.0248,	0.0000,	0.2322)
-		# self.population[2] = (0.0258,	0.0000,	0.0201)
-		# self.population[3] = (0.0268,	0.0000,	0.3191)
-		# self.population[4] = (0.0336,	0.0000,	0.3921)
-		# self.population[5] = (0.0234,	0.0000,	0.1508)
-		# self.population[6] = (0.0271,	0.0000,	0.1504)
-		# self.population[7] = (0.0225,	0.0000,	0.0379)
-		# self.population[8] = (0.0364,	0.0000,	0.6613)
-		# self.population[9] = (0.0237,	0.0000,	0.1548)
 		
-
+		
 	def __init__fitness(self):
 		self.fitness = np.zeros((self.NP, 1), dtype=np.float)
 		for i in range(self.NP ):
