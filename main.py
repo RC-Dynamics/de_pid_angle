@@ -1,6 +1,7 @@
 import socket
 import json
 import time
+from matplotlib import pyplot as plt
 from robot import Robot
 from path import Path
 from pid import PIDAngle
@@ -37,8 +38,6 @@ def updateRobot(i):
 ######################################################################################
 import numpy as np 
 import random
-
-#from fitness_ackley import fitness_ackley as fitnessFunction
 from tqdm import tqdm
 
 HOST = '127.0.0.1'        # Local host
@@ -119,17 +118,6 @@ def fitnessFunction(kp, ki, kd):
 	time.sleep(0.2)
 
 	return fitness_error
-	#while (path.pointDistance(125, 65, x, y) >= 0.3):
-	#	x,y,theta = updateRobot(i)
-	#	pass
-	#while(path.pointDistance(125, 65, x, y) <= 0.1 and countInt > 0):
-#		print("Wait For Restart")#
-#		pass
-#	break
-	#print((startPoints[0]))
-	#print((endPoints[0]))
-	#print(robotPositions[0])
-	#break
 
 
 class DEA:
@@ -147,7 +135,7 @@ class DEA:
 		self.MaxGen = MaxGen
 		self.CR = CR
 		self.F = F
-		self.kpMax, self.kiMax, self.kdMax = 4, 2, 4
+		self.kpMax, self.kiMax, self.kdMax = 1, 1, 1
 		self.timeStamp = (datetime.now())  
 		self.logName = '_'.join(str(x) for x in (self.timeStamp.year,self.timeStamp.month, self.timeStamp.day, self.timeStamp.hour, self.timeStamp.minute))
 		
@@ -220,6 +208,8 @@ class DEA:
 						geneR2 = self.population[r2, j]
 						geneR3 = self.population[r3, j]
 						gene = geneR1 + self.F * (geneR2 - geneR3)
+						if gene < 0.0:
+							gene = np.random.random(1) * 0.01
 						self.popG[i,j] = abs(gene)
 
 					else:
@@ -233,19 +223,59 @@ class DEA:
 					self.fitness[i] = popGFit
 
 
-						
-			
-
-
-
 #######################################################################################
+
+class GridSearch:
+	def __init__(self, KpS=0.0, KpE=1.0, KdS=0.0, KdE=3.0, step=0.1):
+		self.KpS = KpS
+		self.KpE = KpE
+		self.KdS = KdS
+		self.KdE = KdE
+		self.step = step
+		self.timeStamp = (datetime.now())  
+		self.logName = '_'.join(str(x) for x in (self.timeStamp.year,self.timeStamp.month, self.timeStamp.day, self.timeStamp.hour, self.timeStamp.minute))
+		self.__init_csv()
+		
+	def __get_fitness(self, genotype):
+		return fitnessFunction(genotype[0], 0.0,genotype[1]);
+
+	def __init_csv(self):
+		with open ('log/log_grid_'+self.logName+'_population.csv', 'a') as log:
+			log.write("Kp\tKd\tFitness\t\n")
+
+	def forward(self):
+		# Mutation and Cross Over
+		KpAxis = []
+		KdAxis = []
+		fitAxis = []
+		t = tqdm(np.arange(self.KpS, self.KpE, self.step))
+
+		for kp in t:
+			for kd in np.arange(self.KdS, self.KdE, self.step):
+				fitness = self.__get_fitness(np.array([kp, kd]))
+				KpAxis.append(kp)
+				KdAxis.append(kd)
+				fitAxis.append(fitness)
+				with open ('log/log_grid_'+self.logName+'_population.csv', 'a') as log:
+					log.write("{:0.4f}\t{:0.4f}\t{:0.4f}\t\n".format(kp, kd, fitness))
+				t.set_description("PID: {:0.4f} {:0.4f}, Fitness: {:0.4f}".format(kp, kd, fitness))
+
+		fig = plt.figure()
+		ax = fig.gca(projection='3d')
+		ax.plot_trisurf(KpAxis, KdAxis, fitAxis, cmap="jet")
+		plt.show()
+
 
 if __name__ == '__main__':
 	try:
-		dea = DEA(NP=10, MaxGen=200)
-		dea.forward()
-
-		print (np.hstack((dea.population, dea.fitness)))
+		#dea = DEA(NP=15, MaxGen=200)
+		#dea.forward()
+		#print (np.hstack((dea.population, dea.fitness)))
+		# gs = GridSearch()
+		# gs.forward()
+		fitnessFunction(0.1, 0, 2)
+		fitnessFunction(0.1, 0, 2)
+		fitnessFunction(0.0509, 0.0009, 0.0084)
 	except:
 		conn.close()
 		print ('Server closed.')
